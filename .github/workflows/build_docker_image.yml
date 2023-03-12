@@ -69,6 +69,7 @@ jobs:
         id: docker_build
         uses: docker/build-push-action@v3
         with:
+          context: .
           build-args: |
             MAINTAINER=${{ github.repository_owner }}
             QL_BRANCH=${{ github.ref_name }}
