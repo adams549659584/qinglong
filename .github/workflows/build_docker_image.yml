@@ -5,89 +5,15 @@ on:
     branches:
       - 'master'
       - 'develop'
+      - 'my-develop'
     tags:
       - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
-  schedule:
-    # 参考 https://jasonet.co/posts/scheduled-actions/
-    - cron: '00 14 * * *' # GMT 15:00 => 北京时间 23:00
-  workflow_dispatch:
+  watch:
+    types: [started]
 
 jobs:
-  to_gitlab:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      - uses: pixta-dev/repository-mirroring-action@v1
-        with:
-          target_repo_url:
-            git@gitlab.com:whyour/qinglong.git
-          ssh_private_key:
-            ${{ secrets.GITLAB_SSH_PK }}
-  
-  to_gitee:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      - uses: pixta-dev/repository-mirroring-action@v1
-        with:
-          target_repo_url:
-            git@gitee.com:whyour/qinglong.git
-          ssh_private_key:
-            ${{ secrets.GITLAB_SSH_PK }}
-
-  build-static:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: pnpm/action-setup@v2
-        with:
-          version: latest
-
-      - uses: actions/setup-node@v3
-        with:
-          cache: 'pnpm'
-
-      - name: build front and back
-        run: |
-          pnpm install --frozen-lockfile
-          pnpm build:front
-          pnpm build:back
-
-      - name: copy to static repo
-        env:
-          GITHUB_REPO: github.com/${{ github.repository_owner }}/qinglong-static
-          GITHUB_BRANCH: ${{ github.ref_name }}
-          REPO_GITEE: git@gitee.com:whyour/qinglong-static.git
-          REPO_GITLAB: git@gitlab.com:whyour/qinglong-static.git
-          PRIVATE_KEY: ${{ secrets.GITLAB_SSH_PK }}
-        run: |
-          mkdir -p tmp
-          cd ./tmp
-          cp -rf ../static/* ./
-          git init -b ${GITHUB_BRANCH} && git add .
-          git config --local user.name 'github-actions[bot]'
-          git config --local user.email 'github-actions[bot]@users.noreply.github.com'
-          git commit --allow-empty -m "copy static at $(date +'%Y-%m-%d %H:%M:%S')"
-          git push --force --quiet "https://${{ secrets.API_TOKEN }}@${GITHUB_REPO}.git" ${GITHUB_BRANCH}:${GITHUB_BRANCH}
-
-          mkdir -p ~/.ssh
-          echo "${PRIVATE_KEY}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-
-          export GIT_SSH_COMMAND="ssh -v -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no -l git"
-          git remote add gitee "${REPO_GITEE}"
-          git remote add gitlab "${REPO_GITLAB}"
-          git push --force --quiet gitee ${GITHUB_BRANCH}:${GITHUB_BRANCH}
-          git push --force --quiet gitlab ${GITHUB_BRANCH}:${GITHUB_BRANCH}
-
   build:
-    if: github.ref != 'refs/heads/master'
-
-    needs: build-static
+    if: github.event.repository.owner.id == github.event.sender.id
 
     runs-on: ubuntu-latest
 
@@ -112,15 +38,8 @@ jobs:
       - name: Login to DockerHub
         uses: docker/login-action@v2
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-      - name: Login to GHCR
-        uses: docker/login-action@v2
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
@@ -145,7 +64,7 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
-      
+
       - name: Build and push
         id: docker_build
         uses: docker/build-push-action@v3
@@ -161,8 +80,8 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=registry,ref=whyour/qinglong:cache
-          cache-to: type=registry,ref=whyour/qinglong:cache,mode=max
-      
+          cache-from: type=registry,ref=${{ github.repository }}:cache
+          cache-to: type=registry,ref=${{ github.repository }}:cache,mode=max
+
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}

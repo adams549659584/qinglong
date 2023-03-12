@@ -55,6 +55,8 @@ let BARK_ICON = 'https://qn.whyour.cn/logo.png';
 let BARK_SOUND = '';
 //BARK app推送消息的分组, 默认为"QingLong"
 let BARK_GROUP = 'QingLong';
+//BARK app推送消息的设备ID, 默认为""
+let BARK_DEVICE_KEY = '';
 
 // =======================================telegram机器人通知设置区域===========================================
 //此处填你telegram bot 的Token，telegram机器人通知推送必填项.例如：1077xxx4424:AAFjv0FcqxxxxxxgEMGfi22B4yh15R5uw
@@ -184,10 +186,7 @@ if (process.env.QQ_MODE) {
 }
 
 if (process.env.BARK_PUSH) {
-  if (
-    process.env.BARK_PUSH.indexOf('https') > -1 ||
-    process.env.BARK_PUSH.indexOf('http') > -1
-  ) {
+  if (process.env.BARK_PUSH.indexOf('https') > -1 || process.env.BARK_PUSH.indexOf('http') > -1) {
     //兼容BARK自建用户
     BARK_PUSH = process.env.BARK_PUSH;
   } else {
@@ -202,12 +201,11 @@ if (process.env.BARK_PUSH) {
   if (process.env.BARK_GROUP) {
     BARK_GROUP = process.env.BARK_GROUP;
   }
+  if (process.env.BARK_DEVICE_KEY) {
+    BARK_DEVICE_KEY = process.env.BARK_DEVICE_KEY;
+  }
 } else {
-  if (
-    BARK_PUSH &&
-    BARK_PUSH.indexOf('https') === -1 &&
-    BARK_PUSH.indexOf('http') === -1
-  ) {
+  if (BARK_PUSH && BARK_PUSH.indexOf('https') === -1 && BARK_PUSH.indexOf('http') === -1) {
     //兼容BARK本地用户只填写设备码的情况
     BARK_PUSH = `https://api.day.app/${BARK_PUSH}`;
   }
@@ -288,21 +286,16 @@ if (process.env.SMTP_NAME) {
  * @param author 作者仓库等信息  例：`本通知 By：https://github.com/whyour/qinglong`
  * @returns {Promise<unknown>}
  */
-async function sendNotify(
-  text,
-  desp,
-  params = {},
-  author = '\n\n本通知 By：https://github.com/whyour/qinglong',
-) {
+async function sendNotify(text, desp, params = {}, author = '') {
   //提供6种通知
   desp += author; //增加作者信息，防止被贩卖等
 
   // 根据标题跳过一些消息推送，环境变量：SKIP_PUSH_TITLE 用回车分隔
-  let skipTitle = process.env.SKIP_PUSH_TITLE
-  if(skipTitle) {
-    if(skipTitle.split('\n').includes(text)) {
-      console.info(text + "在SKIP_PUSH_TITLE环境变量内，跳过推送！");
-      return
+  let skipTitle = process.env.SKIP_PUSH_TITLE;
+  if (skipTitle) {
+    if (skipTitle.split('\n').includes(text)) {
+      console.info(text + '在SKIP_PUSH_TITLE环境变量内，跳过推送！');
+      return;
     }
   }
 
@@ -330,13 +323,11 @@ async function sendNotify(
 }
 
 function gotifyNotify(text, desp) {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     if (GOTIFY_URL && GOTIFY_TOKEN) {
       const options = {
         url: `${GOTIFY_URL}/message?token=${GOTIFY_TOKEN}`,
-        body: `title=${encodeURIComponent(text)}&message=${encodeURIComponent(
-          desp,
-        )}&priority=${GOTIFY_PRIORITY}`,
+        body: `title=${encodeURIComponent(text)}&message=${encodeURIComponent(desp)}&priority=${GOTIFY_PRIORITY}`,
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
@@ -367,7 +358,7 @@ function gotifyNotify(text, desp) {
 }
 
 function gobotNotify(text, desp) {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     if (GOBOT_URL) {
       const options = {
         url: `${GOBOT_URL}?access_token=${GOBOT_TOKEN}&${GOBOT_QQ}`,
@@ -405,14 +396,12 @@ function gobotNotify(text, desp) {
 }
 
 function serverNotify(text, desp) {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     if (SCKEY) {
       //微信server酱推送通知一个\n不会换行，需要两个\n才能换行，故做此替换
       desp = desp.replace(/[\n\r]/g, '\n\n');
       const options = {
-        url: SCKEY.includes('SCT')
-          ? `https://sctapi.ftqq.com/${SCKEY}.send`
-          : `https://sc.ftqq.com/${SCKEY}.send`,
+        url: SCKEY.includes('SCT') ? `https://sctapi.ftqq.com/${SCKEY}.send` : `https://sc.ftqq.com/${SCKEY}.send`,
         body: `text=${text}&desp=${desp}`,
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
@@ -449,7 +438,7 @@ function serverNotify(text, desp) {
 }
 
 function PushDeerNotify(text, desp) {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     if (PUSHDEER_KEY) {
       // PushDeer 建议对消息内容进行 urlencode
       desp = encodeURI(desp);
@@ -469,10 +458,7 @@ function PushDeerNotify(text, desp) {
           } else {
             data = JSON.parse(data);
             // 通过返回的result的长度来判断是否成功
-            if (
-              data.content.result.length !== undefined &&
-              data.content.result.length > 0
-            ) {
+            if (data.content.result.length !== undefined && data.content.result.length > 0) {
               console.log('PushDeer发送通知消息成功🎉\n');
             } else {
               console.log(`PushDeer发送通知消息异常\n${JSON.stringify(data)}`);
@@ -491,7 +477,7 @@ function PushDeerNotify(text, desp) {
 }
 
 function ChatNotify(text, desp) {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     if (CHAT_URL && CHAT_TOKEN) {
       // 对消息内容进行 urlencode
       desp = encodeURI(desp);
@@ -528,38 +514,79 @@ function ChatNotify(text, desp) {
 }
 
 function BarkNotify(text, desp, params = {}) {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     if (BARK_PUSH) {
-      const options = {
-        url: `${BARK_PUSH}/${encodeURIComponent(text)}/${encodeURIComponent(
-          desp,
-        )}?icon=${BARK_ICON}&sound=${BARK_SOUND}&group=${BARK_GROUP}&${querystring.stringify(
-          params,
-        )}`,
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        timeout,
-      };
-      $.get(options, (err, resp, data) => {
-        try {
-          if (err) {
-            console.log('Bark APP发送通知调用API失败！！\n');
-            console.log(err);
-          } else {
-            data = JSON.parse(data);
-            if (data.code === 200) {
-              console.log('Bark APP发送通知消息成功🎉\n');
+      if (BARK_DEVICE_KEY) {
+        const barkParams = {
+          title: text,
+          body: desp,
+          device_key: BARK_DEVICE_KEY,
+          icon: BARK_ICON,
+          sound: BARK_SOUND,
+          group: BARK_GROUP,
+          ...params,
+        };
+        const options = {
+          url: `${BARK_PUSH}`,
+          json: barkParams,
+          headers: {
+            'Content-Type': 'application/json; charset=utf-8',
+          },
+          timeout,
+        };
+        $.post(options, (err, resp, data) => {
+          try {
+            if (err) {
+              console.log('Bark APP发送通知调用API失败！！\n');
+              console.log(err);
             } else {
-              console.log(`${data.message}\n`);
+              data = JSON.parse(data);
+              if (data.code === 200) {
+                console.log('Bark APP发送通知消息成功🎉\n');
+              } else {
+                console.log(`${data.message}\n`);
+              }
             }
+          } catch (e) {
+            $.logErr(e, resp);
+          } finally {
+            resolve();
           }
-        } catch (e) {
-          $.logErr(e, resp);
-        } finally {
-          resolve();
-        }
-      });
+        });
+      } else {
+        const barkParams = {
+          icon: BARK_ICON,
+          sound: BARK_SOUND,
+          group: BARK_GROUP,
+          ...params,
+        };
+        const options = {
+          url: `${BARK_PUSH}/${encodeURIComponent(text)}/${encodeURIComponent(desp)}?${querystring.stringify(barkParams)}`,
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          timeout,
+        };
+        $.get(options, (err, resp, data) => {
+          try {
+            if (err) {
+              console.log('Bark APP发送通知调用API失败！！\n');
+              console.log(err);
+            } else {
+              data = JSON.parse(data);
+              if (data.code === 200) {
+                console.log('Bark APP发送通知消息成功🎉\n');
+              } else {
+                console.log(`${data.message}\n`);
+              }
+            }
+          } catch (e) {
+            $.logErr(e, resp);
+          } finally {
+            resolve();
+          }
+        });
+      }
     } else {
       resolve();
     }
@@ -567,7 +594,7 @@ function BarkNotify(text, desp, params = {}) {
 }
 
 function tgBotNotify(text, desp) {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     if (TG_BOT_TOKEN && TG_USER_ID) {
       const options = {
         url: `https://${TG_API_HOST}/bot${TG_BOT_TOKEN}/sendMessage`,
@@ -604,9 +631,7 @@ function tgBotNotify(text, desp) {
             if (data.ok) {
               console.log('Telegram发送通知消息成功🎉。\n');
             } else if (data.error_code === 400) {
-              console.log(
-                '请主动给bot发送一条消息并检查接收用户ID是否正确。\n',
-              );
+              console.log('请主动给bot发送一条消息并检查接收用户ID是否正确。\n');
             } else if (data.error_code === 401) {
               console.log('Telegram bot token 填写错误。\n');
             }
@@ -623,7 +648,7 @@ function tgBotNotify(text, desp) {
   });
 }
 function ddBotNotify(text, desp) {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     const options = {
       url: `https://oapi.dingtalk.com/robot/send?access_token=${DD_BOT_TOKEN}`,
       json: {
@@ -690,7 +715,7 @@ function ddBotNotify(text, desp) {
 }
 
 function qywxBotNotify(text, desp) {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     const options = {
       url: `https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=${QYWX_KEY}`,
       json: {
@@ -750,7 +775,7 @@ function ChangeUserId(desp) {
 }
 
 function qywxamNotify(text, desp) {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     if (QYWX_AM) {
       const QYWX_AM_AY = QYWX_AM.split(',');
       const options_accesstoken = {
@@ -834,20 +859,12 @@ function qywxamNotify(text, desp) {
         $.post(options, (err, resp, data) => {
           try {
             if (err) {
-              console.log(
-                '成员ID:' +
-                  ChangeUserId(desp) +
-                  '企业微信应用消息发送通知消息失败！！\n',
-              );
+              console.log('成员ID:' + ChangeUserId(desp) + '企业微信应用消息发送通知消息失败！！\n');
               console.log(err);
             } else {
               data = JSON.parse(data);
               if (data.errcode === 0) {
-                console.log(
-                  '成员ID:' +
-                    ChangeUserId(desp) +
-                    '企业微信应用消息发送通知消息成功🎉。\n',
-                );
+                console.log('成员ID:' + ChangeUserId(desp) + '企业微信应用消息发送通知消息成功🎉。\n');
               } else {
                 console.log(`${data.errmsg}\n`);
               }
@@ -866,7 +883,7 @@ function qywxamNotify(text, desp) {
 }
 
 function iGotNotify(text, desp, params = {}) {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     if (IGOT_PUSH_KEY) {
       // 校验传入的IGOT_PUSH_KEY是否有效
       const IGOT_PUSH_KEY_REGX = new RegExp('^[a-zA-Z0-9]{24}$');
@@ -909,7 +926,7 @@ function iGotNotify(text, desp, params = {}) {
 }
 
 function pushPlusNotify(text, desp) {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     if (PUSH_PLUS_TOKEN) {
       desp = desp.replace(/[\n\r]/g, '<br>'); // 默认为html, 不支持plaintext
       const body = {
@@ -929,26 +946,14 @@ function pushPlusNotify(text, desp) {
       $.post(options, (err, resp, data) => {
         try {
           if (err) {
-            console.log(
-              `push+发送${
-                PUSH_PLUS_USER ? '一对多' : '一对一'
-              }通知消息失败！！\n`,
-            );
+            console.log(`push+发送${PUSH_PLUS_USER ? '一对多' : '一对一'}通知消息失败！！\n`);
             console.log(err);
           } else {
             data = JSON.parse(data);
             if (data.code === 200) {
-              console.log(
-                `push+发送${
-                  PUSH_PLUS_USER ? '一对多' : '一对一'
-                }通知消息完成。\n`,
-              );
+              console.log(`push+发送${PUSH_PLUS_USER ? '一对多' : '一对一'}通知消息完成。\n`);
             } else {
-              console.log(
-                `push+发送${
-                  PUSH_PLUS_USER ? '一对多' : '一对一'
-                }通知消息失败：${data.msg}\n`,
-              );
+              console.log(`push+发送${PUSH_PLUS_USER ? '一对多' : '一对一'}通知消息失败：${data.msg}\n`);
             }
           }
         } catch (e) {
@@ -964,7 +969,7 @@ function pushPlusNotify(text, desp) {
 }
 
 function aibotkNotify(text, desp) {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     if (AIBOTK_KEY && AIBOTK_TYPE && AIBOTK_NAME) {
       let json = {};
       let url = '';
@@ -1026,7 +1031,7 @@ function aibotkNotify(text, desp) {
 }
 
 function fsBotNotify(text, desp) {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     if (FSKEY) {
       const options = {
         url: `https://open.feishu.cn/open-apis/bot/v2/hook/${FSKEY}`,
@@ -1068,15 +1073,12 @@ async function smtpNotify(text, desp) {
 
   try {
     const nodemailer = require('nodemailer');
-    const transporter = nodemailer.createTransport(
-      `${SMTP_SSL === 'true' ? 'smtps:' : 'smtp:'}//${SMTP_SERVER}`,
-      {
-        auth: {
-          user: SMTP_EMAIL,
-          pass: SMTP_PASSWORD,
-        },
+    const transporter = nodemailer.createTransport(`${SMTP_SSL === 'true' ? 'smtps:' : 'smtp:'}//${SMTP_SERVER}`, {
+      auth: {
+        user: SMTP_EMAIL,
+        pass: SMTP_PASSWORD,
       },
-    );
+    });
 
     const addr = SMTP_NAME ? `"${SMTP_NAME}" <${SMTP_EMAIL}>` : SMTP_EMAIL;
     const info = await transporter.sendMail({
@@ -1098,7 +1100,7 @@ async function smtpNotify(text, desp) {
 }
 
 function smtpNotify(text, desp) {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     if (SMTP_SERVER && SMTP_SSL && SMTP_EMAIL && SMTP_PASSWORD && SMTP_NAME) {
       // todo: Node.js并没有内置的 smtp 实现，需要调用外部库，因为不清楚这个文件的模块依赖情况，所以留给有缘人实现
     } else {
