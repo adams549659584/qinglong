@@ -25,15 +25,6 @@ jobs:
         with:
           version: latest
 
-      - uses: actions/setup-node@v3
-        with:
-          cache: 'pnpm'
-
-      - name: Setup timezone
-        uses: zcong1993/setup-timezone@master
-        with:
-          timezone: Asia/Shanghai
-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
 
