@@ -44,7 +44,7 @@ RUN set -x \
                              npm \
     && rm -rf /var/cache/apk/* \
     && apk update \
-    && ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
+    && cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
     && echo "Asia/Shanghai" > /etc/timezone \
     && git config --global user.email "qinglong@@users.noreply.github.com" \
     && git config --global user.name "qinglong" \
