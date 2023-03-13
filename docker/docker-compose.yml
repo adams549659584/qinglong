@@ -1,12 +1,13 @@
 version: "3"
 services:
   qinglong:
-    image: qinglong:latest
+    # image: qinglong:latest
+    image: adams549659584/qinglong:latest
     container_name: qinglong
     # 设定上下文根目录，然后以该目录为准指定 Dockerfile，赋值Dockerfile 中的 ARG 指令
-    build:
-      context: .
-      dockerfile: Dockerfile
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
     restart: unless-stopped
     # 将日志大小限制为 1M，以防止硬盘空间不足
     logging:
