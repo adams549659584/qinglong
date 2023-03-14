@@ -3,13 +3,15 @@ COPY . /tmp/build/
 RUN set -x \
     && apk update \
     && apk add nodejs npm git \
-    && npm i -g pnpm \
-    && cd /tmp/build \
+    && npm i -g pnpm
+
+RUN cd /tmp/build \
     && pnpm install --frozen-lockfile \
     && pnpm build:front \
     && pnpm build:back \
-    && rm -rf node_modules \
-    && pnpm install --prod
+    && rm -rf node_modules
+
+RUN pnpm install --prod
 
 FROM python:3.10-alpine
 
