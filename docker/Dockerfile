@@ -11,7 +11,8 @@ RUN cd /tmp/build \
     && pnpm build:back \
     && rm -rf node_modules
 
-RUN pnpm install --prod
+RUN cd /tmp/build \
+    && pnpm install --prod
 
 FROM python:3.10-alpine
 
