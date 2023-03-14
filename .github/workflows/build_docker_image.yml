@@ -26,6 +26,7 @@ jobs:
           version: latest
       - uses: actions/setup-node@v3
         with:
+          token: ${{ secrets.GHP_TOKEN }}
           cache: 'pnpm'
 
       - name: Setup timezone

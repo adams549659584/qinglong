@@ -26,6 +26,9 @@ networks:
   MyNetwork:
     external: true
 
-# sudo docker network create MyNetwork
-# sudo docker-compose build --no-cache
-# sudo docker-compose up -d
+# docker network create MyNetwork
+# 需更新时，拉取最新镜像
+# docker-compose pull
+# 首次创建，直接执行
+# docker-compose up -d
+
