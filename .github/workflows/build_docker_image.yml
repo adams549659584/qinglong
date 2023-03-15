@@ -33,7 +33,7 @@ jobs:
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
-          with:
+        with:
           personal_token: ${{ secrets.GHP_TOKEN }}
           publish_dir: ./static # 静态文件所在的目录
           publish_branch: qinglong-static # 部署到的分支
