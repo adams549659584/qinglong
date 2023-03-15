@@ -35,7 +35,7 @@ jobs:
         with:
           personal_token: ${{ secrets.GHP_TOKEN }}
           publish_dir: ./static # 静态文件所在的目录
-          publish_branch: qinglong-static # 部署到的分支
+          publish_branch: ${{ github.ref_name }}-static # 部署到的分支
           force_orphan: true # 如果发布分支不存在，创建一个新的分支
 
   build:
