@@ -10,7 +10,7 @@ export default async ({ expressApp }: { expressApp: Application }) => {
   const { version } = await parseVersion(config.versionFile);
 
   Sentry.init({
-    dsn: 'https://f4b5b55fb3c645b29a5dc2d70a1a4ef4@o1098464.ingest.sentry.io/6122819',
+    dsn: 'https://386527afff0841ebb471b523160ed871@o4504821133148160.ingest.sentry.io/4504838829047808',
     integrations: [
       new Sentry.Integrations.Http({ tracing: true }),
       new Tracing.Integrations.Express({ app: expressApp }),
