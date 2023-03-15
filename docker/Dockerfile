@@ -5,15 +5,15 @@ RUN set -x \
     && apk add nodejs npm git \
     && npm i -g pnpm
 
-FROM base as prodInstall
+FROM base as prod-builder
 RUN cd /tmp/build \
     && pnpm install --prod
 
-FROM base as devInstall
+FROM base as dev-builder
 RUN cd /tmp/build \
     && pnpm install --frozen-lockfile
 
-FROM devInstall as staticBuilder
+FROM dev-builder as static-builder
 RUN cd /tmp/build \
     && pnpm build:front \
     && pnpm build:back
@@ -70,8 +70,8 @@ RUN cd ${QL_DIR} \
     && chmod 777 ${QL_DIR}/shell/*.sh \
     && chmod 777 ${QL_DIR}/docker/*.sh
 
-COPY --from=prodInstall /tmp/build/node_modules/. /ql/node_modules/
-COPY --from=staticBuilder /tmp/build/static/. ${QL_DIR}/static/
+COPY --from=prod-builder /tmp/build/node_modules/. /ql/node_modules/
+COPY --from=static-builder /tmp/build/static/. ${QL_DIR}/static/
 
 WORKDIR ${QL_DIR}
 
