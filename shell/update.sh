@@ -240,12 +240,12 @@ update_qinglong() {
     primary_branch="${current_branch}"
   fi
   [[ -f $dir_root/package.json ]] && ql_depend_old=$(cat $dir_root/package.json)
-  reset_romote_url ${dir_root} "https://${mirror}.com/whyour/qinglong.git" ${primary_branch}
+  reset_romote_url ${dir_root} "https://${mirror}.com/${QL_MAINTAINER}/qinglong.git" ${primary_branch}
   git_pull_scripts $dir_root ${primary_branch}
 
   if [[ $exit_status -eq 0 ]]; then
     echo -e "\n更新青龙源文件成功...\n"
-    reset_romote_url ${dir_root} "https://${mirror}.com/whyour/qinglong.git" ${primary_branch}
+    reset_romote_url ${dir_root} "https://${mirror}.com/${QL_MAINTAINER}/qinglong.git" ${primary_branch}
     cp -f $file_config_sample $dir_config/config.sample.sh
     update_depend
 
@@ -260,8 +260,8 @@ update_qinglong() {
 
 update_qinglong_static() {
   local no_restart="$1"
-  local primary_branch="$2"
-  local url="https://${mirror}.com/whyour/qinglong-static.git"
+  local primary_branch="${2}-static"
+  local url="https://${mirror}.com/${QL_MAINTAINER}/qinglong.git"
   if [[ -d ${ql_static_repo}/.git ]]; then
     reset_romote_url ${ql_static_repo} ${url} ${primary_branch}
     git_pull_scripts ${ql_static_repo} ${primary_branch}
@@ -297,7 +297,7 @@ diff_scripts() {
   local extensions="$6"
   local autoAddCron="$7"
   local autoDelCron="$8"
-  
+
   if [[ ! $autoAddCron ]];then
     autoAddCron=${AutoAddCron}
   fi
