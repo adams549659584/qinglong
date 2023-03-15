@@ -1,18 +1,22 @@
-FROM python:3.10-alpine as builder
+FROM python:3.10-alpine as base
 COPY . /tmp/build/
 RUN set -x \
     && apk update \
     && apk add nodejs npm git \
     && npm i -g pnpm
 
-RUN cd /tmp/build \
-    && pnpm install --frozen-lockfile \
-    && pnpm build:front \
-    && pnpm build:back \
-    && rm -rf node_modules
-
+FROM base as prodInstall
 RUN cd /tmp/build \
     && pnpm install --prod
+
+FROM base as devInstall
+RUN cd /tmp/build \
+    && pnpm install --frozen-lockfile
+
+FROM devInstall as staticBuilder
+RUN cd /tmp/build \
+    && pnpm build:front \
+    && pnpm build:back
 
 FROM python:3.10-alpine
 
@@ -66,8 +70,8 @@ RUN cd ${QL_DIR} \
     && chmod 777 ${QL_DIR}/shell/*.sh \
     && chmod 777 ${QL_DIR}/docker/*.sh
 
-COPY --from=builder /tmp/build/node_modules/. /ql/node_modules/
-COPY --from=builder /tmp/build/static/. ${QL_DIR}/static/
+COPY --from=prodInstall /tmp/build/node_modules/. /ql/node_modules/
+COPY --from=staticBuilder /tmp/build/static/. ${QL_DIR}/static/
 
 WORKDIR ${QL_DIR}
 
