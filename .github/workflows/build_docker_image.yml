@@ -32,20 +32,13 @@ jobs:
           pnpm build:back
 
       - name: Deploy
-        uses: peaceiris/actions-gh-pages@v4
+        uses: peaceiris/actions-gh-pages@v3
         with:
-          # https://github.com/peaceiris/actions-gh-pages#%EF%B8%8F-first-deployment-with-github_token
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          with:
+          personal_token: ${{ secrets.GHP_TOKEN }}
           publish_dir: ./static # 静态文件所在的目录
           publish_branch: qinglong-static # 部署到的分支
-          # 一定要先创建分支
-          # $ git checkout --orphan qinglong-static
-          # $ git rm -rf .
-          # $ echo "initial commit" > README.md
-          # $ git add README.md
-          # $ git commit -m "Initial commit"
-          # $ git push origin qinglong-static
-          # force_orphan: true # 如果发布分支不存在，创建一个新的分支
+          force_orphan: true # 如果发布分支不存在，创建一个新的分支
 
   build:
     if: github.ref != 'refs/heads/master'
