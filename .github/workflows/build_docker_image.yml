@@ -21,6 +21,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2
+        with:
+          version: latest
+      - uses: actions/setup-node@v3
+        with:
+          token: ${{ secrets.GHP_TOKEN }}
+          cache: 'pnpm'
 
       - name: Setup timezone
         uses: zcong1993/setup-timezone@master
