@@ -10,8 +10,37 @@ on:
     types: [started]
 
 jobs:
+  build-static:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+      - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2
+        with:
+          version: latest
+
+      - uses: actions/setup-node@v3
+        with:
+          cache: 'pnpm'
+
+      - name: Build front and back
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm build:front
+          pnpm build:back
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./static # 静态文件所在的目录
+          publish_branch: qinglong-static # 部署到的分支
+          force_orphan: true # 如果发布分支不存在，创建一个新的分支
+
   build:
     if: github.ref != 'refs/heads/master'
+
+    needs: build-static
 
     runs-on: ubuntu-latest
 

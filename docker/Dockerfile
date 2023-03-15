@@ -1,27 +1,18 @@
-FROM python:3.10-alpine as base
-COPY . /tmp/build/
+FROM python:3.10-alpine as builder
+COPY package.json .npmrc pnpm-lock.yaml /tmp/build/
 RUN set -x \
     && apk update \
     && apk add nodejs npm git \
-    && npm i -g pnpm
-
-FROM base as prod-builder
-RUN cd /tmp/build \
+    && npm i -g pnpm \
+    && cd /tmp/build \
     && pnpm install --prod
-
-FROM base as dev-builder
-RUN cd /tmp/build \
-    && pnpm install --frozen-lockfile
-
-FROM dev-builder as static-builder
-RUN cd /tmp/build \
-    && pnpm build:front \
-    && pnpm build:back
 
 FROM python:3.10-alpine
 
 ARG QL_MAINTAINER="adams549659584"
 LABEL maintainer="${QL_MAINTAINER}"
+ARG QL_URL=https://github.com/${QL_MAINTAINER}/qinglong.git
+ARG QL_BRANCH=qinglong-static
 
 ENV PNPM_HOME=/root/.local/share/pnpm \
     PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/root/.local/share/pnpm:/root/.local/share/pnpm/global/5/node_modules:$PNPM_HOME \
@@ -29,7 +20,8 @@ ENV PNPM_HOME=/root/.local/share/pnpm \
     LANG=zh_CN.UTF-8 \
     SHELL=/bin/bash \
     PS1="\u@\h:\w \$ " \
-    QL_DIR=/ql
+    QL_DIR=/ql \
+    QL_BRANCH=${QL_BRANCH}
 
 RUN set -x \
     && sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories \
@@ -64,14 +56,17 @@ RUN set -x \
     && rm -rf /root/.npm
 
 ARG SOURCE_COMMIT
-COPY . ${QL_DIR}
-RUN cd ${QL_DIR} \
+RUN git clone -b ${QL_BRANCH} ${QL_URL} ${QL_DIR} \
+    && cd ${QL_DIR} \
     && cp -f .env.example .env \
     && chmod 777 ${QL_DIR}/shell/*.sh \
-    && chmod 777 ${QL_DIR}/docker/*.sh
+    && chmod 777 ${QL_DIR}/docker/*.sh \
+    && git clone -b ${QL_BRANCH} ${QL_URL} /static \
+    && mkdir -p ${QL_DIR}/static \
+    && cp -rf /static/* ${QL_DIR}/static \
+    && rm -rf /static
 
-COPY --from=prod-builder /tmp/build/node_modules/. /ql/node_modules/
-COPY --from=static-builder /tmp/build/static/. ${QL_DIR}/static/
+COPY --from=builder /tmp/build/node_modules/. /ql/node_modules/
 
 WORKDIR ${QL_DIR}
 
