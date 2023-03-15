@@ -40,7 +40,7 @@ const About = ({ systemInfo }: { systemInfo: SharedContext['systemInfo'] }) => {
           </Descriptions.Item>
           <Descriptions.Item label="更新日志" span={3}>
             <Link
-              href={`https://qn.whyour.cn/version.yaml?t=${Date.now()}`}
+              href={`https://raw.githubusercontent.com/adams549659584/qinglong/my-develop/version.yaml?t=${Date.now()}`}
               target="_blank"
             >
               查看
