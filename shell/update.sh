@@ -5,6 +5,7 @@ dir_shell=$QL_DIR/shell
 . $dir_shell/api.sh
 
 send_mark=$dir_shell/send_mark
+QL_MAINTAINER=adams549659584
 
 ## 检测cron的差异，$1：脚本清单文件路径，$2：cron任务清单文件路径，$3：增加任务清单文件路径，$4：删除任务清单文件路径
 diff_cron() {
