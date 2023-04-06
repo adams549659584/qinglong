@@ -3,6 +3,7 @@ import { Typography, Input, Form, Button, message, Descriptions } from 'antd';
 import styles from './index.less';
 import { SharedContext } from '@/layouts';
 import dayjs from 'dayjs';
+import logo from '@/assets/images/logo.png';
 
 const { Link } = Typography;
 
@@ -17,7 +18,7 @@ const About = ({ systemInfo }: { systemInfo: SharedContext['systemInfo'] }) => {
       <img
         alt="logo"
         style={{ width: 140, marginRight: 20 }}
-        src="https://qn.whyour.cn/logo.png"
+        src={logo}
       />
       <div className={styles.right}>
         <span className={styles.title}>青龙</span>

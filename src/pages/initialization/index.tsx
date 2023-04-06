@@ -13,6 +13,7 @@ import config from '@/utils/config';
 import { history } from '@umijs/max';
 import styles from './index.less';
 import { request } from '@/utils/http';
+import logo from '@/assets/images/logo.png';
 
 const FormItem = Form.Item;
 const { Step } = Steps;
@@ -232,7 +233,7 @@ const Initialization = () => {
           <img
             alt="logo"
             className={styles.logo}
-            src="https://qn.whyour.cn/logo.png"
+            src={logo}
           />
           <span className={styles.title}>初始化配置</span>
         </div>

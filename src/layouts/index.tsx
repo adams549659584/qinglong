@@ -34,6 +34,7 @@ import { init } from '../utils/init';
 import 'codemirror/mode/javascript/javascript';
 import 'codemirror/mode/python/python';
 import 'codemirror/mode/shell/shell';
+import logo from '@/assets/images/logo.png';
 
 export interface SharedContext {
   headerStyle: React.CSSProperties;
@@ -267,7 +268,7 @@ export default function () {
       selectedKeys={[location.pathname]}
       loading={loading}
       ErrorBoundary={Sentry.ErrorBoundary}
-      logo={<Image preview={false} src="https://qn.whyour.cn/logo.png" />}
+      logo={<Image preview={false} src={logo} />}
       // @ts-ignore
       title={
         <>

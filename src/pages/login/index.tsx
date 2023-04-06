@@ -15,6 +15,7 @@ import { request } from '@/utils/http';
 import { useTheme } from '@/utils/hooks';
 import { MobileOutlined } from '@ant-design/icons';
 import { SharedContext } from '@/layouts';
+import logo from '@/assets/images/logo.png';
 
 const FormItem = Form.Item;
 const { Countdown } = Statistic;
@@ -129,7 +130,7 @@ const Login = () => {
           <img
             alt="logo"
             className={styles.logo}
-            src="https://qn.whyour.cn/logo.png"
+            src={logo}
           />
           <span className={styles.title}>
             {twoFactor ? '两步验证' : config.siteName}
